@@ -36,6 +36,18 @@
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
+                      {{ $t('type correction') | uppercase }}
+                    </td>
+                    <td>{{ stockCorrection.typeCorrection | uppercase }}</td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">
+                      {{ $t('qc passed') | uppercase }}
+                    </td>
+                    <td>{{ stockCorrection.qcPassed ? 'yes' : 'no' | uppercase }}</td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">
                       {{ $t('warehouse') | uppercase }}
                     </td>
                     <td>
@@ -231,6 +243,13 @@
       :disable-unit-selection="true"
       @updated="updateDna($event)"
     />
+    <m-inventory-in
+      :id="'inventoryin'"
+      ref="inventoryin"
+      :disable-unit-selection="true"
+      :only-smallest-unit="true"
+      @submit="updateDna($event)"
+    />
   </div>
 </template>
 
@@ -278,6 +297,7 @@ export default {
       }).then(async (response) => {
         this.form.id = response.data.form.id
         this.form.warehouse_id = response.data.warehouseId
+        this.form.type_correction = response.data.typeCorrection
         this.form.warehouse_name = response.data.warehouse.name
         this.form.number = response.data.form.number
         this.form.date = response.data.form.date
@@ -517,13 +537,29 @@ export default {
     onClickQuantity (row, index) {
       if (row.require_expiry_date == 1 || row.require_production_number == 1) {
         row.warehouse_id = this.form.warehouse_id
+        row.isCorrection = true
         row.index = index
-        this.$refs.inventory.open(row, row.quantity)
+        if (this.form.type_correction === 'in') {
+          this.$refs.inventoryin.open(row, row.quantity)
+        } else {
+          this.$refs.inventory.open(row, row.quantity)
+        }
       }
     },
     updateDna (e) {
+      if (this.form.type_correction === 'out') {
+        e.dna.forEach(function (dna, index) {
+          if (dna.quantity > 0) {
+            e.dna[index].quantity = -dna.quantity
+          }
+        })
+      }
       this.form.items[e.index].dna = e.dna
-      this.form.items[e.index].stock_correction = e.quantity
+      if (this.form.type_correction === 'out' && e.quantity > 0) {
+        this.form.items[e.index].stock_correction = -e.quantity
+      } else {
+        this.form.items[e.index].stock_correction = e.quantity
+      }
     },
     onSubmit () {
       this.isSaving = true

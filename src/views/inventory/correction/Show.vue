@@ -96,6 +96,24 @@
                   <td>{{ stockCorrection.date | dateFormat('DD MMMM YYYY') }}</td>
                 </tr>
                 <tr>
+                  <td
+                    width="150px"
+                    class="font-weight-bold"
+                  >
+                    {{ $t('type correction') | uppercase }}
+                  </td>
+                  <td>{{ stockCorrection.typeCorrection | uppercase }}</td>
+                </tr>
+                <tr>
+                  <td
+                    width="150px"
+                    class="font-weight-bold"
+                  >
+                    {{ $t('qc passed') | uppercase }}
+                  </td>
+                  <td>{{ stockCorrection.qcPassed ? 'yes' : 'no' | uppercase }}</td>
+                </tr>
+                <tr>
                   <td class="font-weight-bold">
                     {{ $t('warehouse') | uppercase }}
                   </td>

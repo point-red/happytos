@@ -36,6 +36,54 @@
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
+                      {{ $t('type correction') | uppercase }}
+                    </td>
+                    <td>
+                      <p-form-check-box
+                        id="type-corection"
+                        class="mb-0"
+                        style="float:left"
+                        name="type-corection"
+                        :checked="form.type_correction == 'in'"
+                        :description="$t('in') | uppercase"
+                        @click.native="chooseTypeCorrection('in')"
+                      />
+                      <p-form-check-box
+                        id="type-corection"
+                        name="type-corection"
+                        class="mb-0"
+                        :checked="form.type_correction == 'out'"
+                        :description="$t('out') | uppercase"
+                        @click.native="chooseTypeCorrection('out')"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">
+                      {{ $t('qc passed') | uppercase }}
+                    </td>
+                    <td>
+                      <p-form-check-box
+                        id="qc-passed"
+                        class="mb-0"
+                        style="float:left"
+                        name="qc-passed"
+                        :checked="form.qc_passed == 1"
+                        :description="$t('yes') | uppercase"
+                        @click.native="chooseQcPassed(1)"
+                      />
+                      <p-form-check-box
+                        id="qc-passed"
+                        name="qc-passed"
+                        class="mb-0"
+                        :checked="form.qc_passed == 0"
+                        :description="$t('no') | uppercase"
+                        @click.native="chooseQcPassed(0)"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">
                       {{ $t('warehouse') | uppercase }}
                     </td>
                     <td>
@@ -56,7 +104,7 @@
               </div>
             </div>
             <hr>
-            <point-table v-if="form.warehouse_id">
+            <point-table v-if="form.warehouse_id && form.qc_passed">
               <tr slot="p-head">
                 <th>#</th>
                 <th style="min-width: 120px">
@@ -77,7 +125,7 @@
                   <td>
                     <span
                       class="select-link"
-                      @click="$refs.item.open(index)"
+                      @click=" form.qc_passed ? $refs.item.open(index) : alertItemSelection()"
                     >
                       {{ row.item_label || $t('select') | uppercase }}
                     </span>
@@ -153,7 +201,7 @@
             </point-table>
             <hr>
             <div
-              v-if="form.warehouse_id"
+              v-if="form.warehouse_id && form.qc_passed"
               class="row"
             >
               <div class="col-sm-6">
@@ -242,6 +290,13 @@
       :only-smallest-unit="true"
       @updated="updateDna($event)"
     />
+    <m-inventory-in
+      :id="'inventoryin'"
+      ref="inventoryin"
+      :disable-unit-selection="true"
+      :only-smallest-unit="true"
+      @submit="updateDna($event)"
+    />
   </div>
 </template>
 
@@ -265,6 +320,8 @@ export default {
       isLoading: false,
       requestedBy: localStorage.getItem('fullName'),
       form: new Form({
+        type_correction: 'in',
+        qc_passed: 1,
         warehouse_id: null,
         warehouse_name: null,
         date: this.$moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -313,11 +370,34 @@ export default {
       this.form.approver_name = value.fullName
       this.form.approver_email = value.email
     },
+    chooseTypeCorrection (type) {
+      if (type == this.form.type_correction) {
+        this.form.type_correction = null
+      } else {
+        this.form.type_correction = type
+      }
+    },
+    chooseQcPassed (value) {
+      if (value == this.form.qc_passed) {
+        this.form.qc_passed = null
+      } else {
+        this.form.qc_passed = value
+      }
+
+      if (this.form.qc_passed == 0) {
+        this.form.items.forEach((element, i) => {
+          this.clearItem(i)
+        })
+      }
+    },
     chooseWarehouse (value) {
       this.form.warehouse_id = value.id
       this.form.warehouse_name = value.name
       this.form.items = []
       this.addItemRow()
+    },
+    alertItemSelection () {
+      alert("can't select item if qc not passed")
     },
     async chooseItem (item) {
       if (item.id == null) {
@@ -387,13 +467,29 @@ export default {
     onClickQuantity (row, index) {
       if (row.require_expiry_date == 1 || row.require_production_number == 1) {
         row.warehouse_id = this.form.warehouse_id
+        row.isCorrection = true
         row.index = index
-        this.$refs.inventory.open(row, row.quantity)
+        if (this.form.type_correction === 'in') {
+          this.$refs.inventoryin.open(row, row.quantity)
+        } else {
+          this.$refs.inventory.open(row, row.quantity)
+        }
       }
     },
     updateDna (e) {
+      if (this.form.type_correction === 'out') {
+        e.dna.forEach(function (dna, index) {
+          if (dna.quantity > 0) {
+            e.dna[index].quantity = -dna.quantity
+          }
+        })
+      }
       this.form.items[e.index].dna = e.dna
-      this.form.items[e.index].stock_correction = e.quantity
+      if (this.form.type_correction === 'out' && e.quantity > 0) {
+        this.form.items[e.index].stock_correction = -e.quantity
+      } else {
+        this.form.items[e.index].stock_correction = e.quantity
+      }
     },
     getSmallestUnit (units) {
       return units.filter((unit) => {
@@ -449,7 +545,9 @@ export default {
         requestApprovalTo: this.form.request_approval_to,
         dueDate: this.form.date,
         warehouseId: this.form.warehouse_id,
-        notes: this.form.notes
+        notes: this.form.notes,
+        typeCorrection: this.form.type_correction,
+        qcPassed: this.form.qc_passed
       }
 
       this.create(requestPayload)
