@@ -7,6 +7,12 @@
     <div class="row gutters-tiny">
       <p-box
         v-if="$permission.has('read transfer item')"
+        name="Send - Customer"
+        link="/inventory/transfer/send-customer"
+        icon="fa fa-truck"
+      />
+      <p-box
+        v-if="$permission.has('read transfer item')"
         name="Send"
         link="/inventory/transfer/send"
         icon="fa fa-truck"
