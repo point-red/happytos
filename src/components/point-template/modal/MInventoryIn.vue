@@ -113,6 +113,7 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 export default {
   props: {
     id: {
@@ -138,22 +139,63 @@ export default {
         name: null,
         label: null,
         converter: null
-      }
+      },
+      itemId: 0,
+      warehouseId: 0,
+      stockCorrectionOptions: []
     }
+  },
+  computed: {
+    ...mapGetters('inventoryInventoryDna', ['inventories'])
   },
   beforeDestroy () {
     this.close()
   },
   methods: {
+    ...mapActions('inventoryInventoryDna', ['get', 'pagination']),
     chooseUnit (unit) {
       this.unit = unit
+    },
+    init () {
+      this.isLoading = true
+      this.get({
+        itemId: this.itemId,
+        params: {
+          warehouse_id: this.warehouseId
+        }
+      }).then(response => {
+        this.options = this.inventories
+        this.options.forEach(inventory => {
+          inventory.quantity = 0
+          this.stockCorrectionOptions.forEach(el => {
+            if (inventory.item_id == el.item_id &&
+              inventory.expiry_date == el.expiry_date &&
+              inventory.production_number == el.production_number) {
+              inventory.quantity = el.quantity
+              el.exist = true
+            }
+          })
+        })
+        for (const data of this.stockCorrectionOptions) {
+          if (!data.exist) {
+            this.options.push(data)
+          }
+        }
+        this.updateTotalQuantity()
+        this.isLoading = false
+      }).catch(error => {
+        this.isLoading = false
+      })
     },
     addDna () {
       this.options.push({
         expiry_date: this.$moment().format('YYYY-MM-DD'),
         production_number: null,
         quantity: 0,
-        unit: this.unit
+        unit: this.unit,
+        unit_reference: this.unit.name,
+        item_id: this.itemId,
+        converter_reference: this.unit.converter
       })
     },
     deleteDna (index) {
@@ -183,15 +225,25 @@ export default {
         this.max = max
       }
       this.options = []
+      this.stockCorrectionOptions = []
       this.requireExpiryDate = row.item.require_expiry_date
       this.requireProductionNumber = row.item.require_production_number
+      this.warehouseId = row.warehouse_id
+      this.itemId = row.item.id
       this.unit = {
         name: row.unit,
         label: row.unit,
         converter: row.converter
       }
       this.units = row.item.units
-      if (row.dna && row.dna.length > 0) {
+      if (row.isCorrection === true) {
+        if (row.dna && row.dna.length > 0) {
+          this.stockCorrectionOptions = row.dna
+        } else {
+          this.addDna()
+        }
+        this.init()
+      } else if (row.dna && row.dna.length > 0) {
         this.options = row.dna
       } else {
         this.addDna()
