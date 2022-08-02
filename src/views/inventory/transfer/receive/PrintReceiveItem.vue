@@ -61,7 +61,7 @@
                 <tr>
                   <td>Date</td>
                   <td>:</td>
-                  <td>{{ receiveitem.date | dateFormat('DD MMMM YYYY') }}</td>
+                  <td>{{ receiveitem.form.date | dateFormat('DD MMMM YYYY') }}</td>
                 </tr>
                 <tr>
                   <td>Form Reference</td>

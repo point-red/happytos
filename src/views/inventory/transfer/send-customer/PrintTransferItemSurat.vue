@@ -61,7 +61,7 @@
                 <tr>
                   <td>Date</td>
                   <td>:</td>
-                  <td>{{ transferitem.date | dateFormat('DD MMMM YYYY') }}</td>
+                  <td>{{ transferitem.form.date | dateFormat('DD MMMM YYYY') }}</td>
                 </tr>
                 <tr>
                   <td>Warehouse</td>
