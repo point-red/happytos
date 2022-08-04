@@ -113,7 +113,7 @@
                   <td class="font-weight-bold">
                     {{ $t('date') | uppercase }}
                   </td>
-                  <td>{{ inventoryTransferItemCustomer.date | dateFormat('DD MMMM YYYY') }}</td>
+                  <td>{{ inventoryTransferItemCustomer.form.date | dateFormat('DD MMMM YYYY') }}</td>
                 </tr>
                 <tr>
                   <td
