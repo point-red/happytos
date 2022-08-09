@@ -16,6 +16,7 @@ const instance = axios.create({
 })
 
 instance.defaults.headers.common.Authorization = 'Bearer ' + Vue.cookie.get('TNAT')
+instance.defaults.headers.common.Timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 instance.interceptors.request.use((config) => {
   if (process.env.NODE_ENV !== 'production') {

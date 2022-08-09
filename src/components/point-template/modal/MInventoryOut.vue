@@ -171,7 +171,6 @@ export default {
       }).then(response => {
         this.inventories.forEach(inventory => {
           inventory.quantity = 0
-          inventory.expiry_date = this.$moment(inventory.expiry_date).format('YYYY-MM-DD')
           this.mutableInventories.forEach(el => {
             if (inventory.item_id == el.item_id &&
               inventory.expiry_date == el.expiry_date &&
