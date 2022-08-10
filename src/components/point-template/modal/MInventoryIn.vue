@@ -165,7 +165,6 @@ export default {
         }
       }).then(response => {
         this.options = this.inventories
-        console.log('masuk')
         this.options.forEach(inventory => {
           inventory.quantity = 0
           this.stockCorrectionOptions.forEach(el => {
