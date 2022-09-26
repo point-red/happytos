@@ -173,22 +173,158 @@
         <p-block-inner :is-loading="isLoading">
           <point-table>
             <tr slot="p-head">
-              <th>Form Number</th>
-              <th>Date Form</th>
-              <th>Item</th>
-              <th>Production Item</th>
-              <th>Expiry Date</th>
+              <th>
+                Form Number
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.number')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.number')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Date Form
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.date')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.date')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Item
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('item.name')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-item.name')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Production Item
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_sent_item.production_number')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_sent_item.production_number')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Expiry Date
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_sent_item.expiry_date')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_sent_item.expiry_date')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
               <th class="text-center">
                 Quantity Send
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_sent_item.quantity')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_sent_item.quantity')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th class="text-center">
                 Quantity Receive
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_receive_item.quantity')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_receive_item.quantity')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th class="text-center">
                 Approval Status
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.approval_status')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.approval_status')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th class="text-center">
                 Form Status
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.done')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.done')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th>History</th>
             </tr>
@@ -328,6 +464,9 @@ export default {
       limit: 10,
       isAdvanceFilter: false,
       checkedRow: [],
+      isSortAsc: false,
+      isSortDsc: true,
+      sortAction: '-form.number',
       formStatus: {
         id: null,
         label: null,
@@ -452,18 +591,17 @@ export default {
       this.isLoading = true
       this.get({
         params: {
-          join: 'form,items,item',
+          join: 'form,items,item,receive_item,receive_item_items',
           fields: 'transfer_sent.*',
-          sort_by: '-form.number',
+          sort_by: this.sortAction,
           group_by: 'form.id',
           filter_form: this.formStatus.value + ';' + this.formApprovalStatus.value,
           filter_like: {
             'form.number': this.searchText,
-            'item.code': this.searchText,
+            'form.date': this.searchText,
             'item.name': this.searchText,
             'transfer_sent_item.production_number': this.searchText,
             'transfer_sent_item.expiry_date': this.searchText,
-            'transfer_sent_item.notes': this.searchText,
             'transfer_sent_item.quantity': this.searchText
           },
           filter_date_min: {
@@ -503,6 +641,18 @@ export default {
         // this.isExporting.splice(this.isExporting.indexOf(value), 1)
         console.log(error)
       })
+    },
+    sortAsc (action) {
+      this.sortAction = action
+      this.isSortAsc = true
+      this.isSortDsc = false
+      this.getinventoryTransferItem()
+    },
+    sortDsc (action) {
+      this.sortAction = action
+      this.isSortAsc = false
+      this.isSortDsc = true
+      this.getinventoryTransferItem()
     }
   }
 }

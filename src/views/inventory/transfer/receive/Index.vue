@@ -162,18 +162,158 @@
         <p-block-inner :is-loading="isLoading">
           <point-table>
             <tr slot="p-head">
-              <th>Form Reference</th>
-              <th>Form Number</th>
-              <th>From Warehouse</th>
-              <th>To Warehouse</th>
-              <th>Date Send</th>
-              <th>Date Receive</th>
-              <th>Item</th>
+              <th>
+                Form Reference
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_item_form.number')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_item_form.number')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Form Number
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.number')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.number')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                From Warehouse
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('from_warehouse.name')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-from_warehouse.name')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                To Warehouse
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('warehouse.name')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-warehouse.name')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Date Send
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_item_form.date')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_item_form.date')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Date Receive
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('form.date')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-form.date')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
+              <th>
+                Item
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('item.name')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-item.name')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
+              </th>
               <th class="text-center">
                 Quantity Send
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_sent_item.quantity')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_sent_item.quantity')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th class="text-center">
                 Quantity Receive
+                <a
+                  v-show="isSortDsc"
+                  href="javascript:void(0)"
+                  @click="sortAsc('transfer_receive_item.quantity')"
+                >
+                  <i class="fa fa-caret-up" />
+                </a>
+                <a
+                  v-show="isSortAsc"
+                  href="javascript:void(0)"
+                  @click="sortDsc('-transfer_receive_item.quantity')"
+                >
+                  <i class="fa fa-caret-down" />
+                </a>
               </th>
               <th>History</th>
             </tr>
@@ -261,6 +401,9 @@ export default {
       limit: 10,
       isAdvanceFilter: false,
       checkedRow: [],
+      isSortAsc: false,
+      isSortDsc: true,
+      sortAction: '-form.number',
       formStatus: {
         id: null,
         label: null,
@@ -384,15 +527,21 @@ export default {
       console.log(this.searchText)
       this.get({
         params: {
-          join: 'form,items,item',
+          join: 'form,items,item,warehouse,transfer_item',
           fields: 'transfer_receive.*',
-          sort_by: '-form.number',
+          sort_by: this.sortAction,
           group_by: 'form.id',
           filter_form: this.formStatus.value + ';' + this.formApprovalStatus.value,
           filter_like: {
             'form.number': this.searchText,
-            'item.code': this.searchText,
-            'item.name': this.searchText
+            'form.date': this.searchText,
+            'transfer_item_form.number': this.searchText,
+            'transfer_item_form.date': this.searchText,
+            'from_warehouse.name': this.searchText,
+            'warehouse.name': this.searchText,
+            'item.name': this.searchText,
+            'transfer_sent_item.quantity': this.searchText,
+            'transfer_receive_item.quantity': this.searchText
           },
           filter_date_min: {
             'form.date': this.serverDateTime(this.date.start, 'start')
@@ -435,6 +584,18 @@ export default {
         // this.isExporting.splice(this.isExporting.indexOf(value), 1)
         console.log(error)
       })
+    },
+    sortAsc (action) {
+      this.sortAction = action
+      this.isSortAsc = true
+      this.isSortDsc = false
+      this.getinventoryReceiveItem()
+    },
+    sortDsc (action) {
+      this.sortAction = action
+      this.isSortAsc = false
+      this.isSortDsc = true
+      this.getinventoryReceiveItem()
     }
   }
 }

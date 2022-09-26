@@ -96,12 +96,12 @@
                 <tr>
                   <td>Address</td>
                   <td>:</td>
-                  <td>{{ transferitem.warehouse.address || '-' }}</td>
+                  <td>{{ transferitem.customer.address || '-' }}</td>
                 </tr>
                 <tr>
                   <td>Telp</td>
                   <td>:</td>
-                  <td>{{ transferitem.warehouse.phone || '-' }}</td>
+                  <td>{{ transferitem.customer.phone || '-' }}</td>
                 </tr>
                 <tr>
                   <td>ISO</td>
