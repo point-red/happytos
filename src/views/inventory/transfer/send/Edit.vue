@@ -377,8 +377,8 @@ export default {
               }).catch(error => {
                 this.isLoading = false
               })
-              sumQty += el.quantity
             }
+            sumQty += el.quantity
           }
         })
         item.quantity = sumQty
