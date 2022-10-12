@@ -557,10 +557,10 @@ export default {
       params: {
         includes: 'form.requestApprovalTo;items.item.units;warehouse;customer;expedition;'
       }
-    }).then(response => {
+    }).then(async (response) => {
       this.isLoading = false
       const items = []
-      response.data.items.forEach(el => {
+      response.data.items.forEach(async (el) => {
         if (items.find(o => o.item_id == el.item_id) == undefined) {
           items.push({
             item_id: el.item_id,
@@ -580,8 +580,8 @@ export default {
         }
       })
       this.loopHellDone = false
-      items.forEach((item, index, array) => {
-        this.get({
+      items.forEach(async (item, index, array) => {
+        await this.get({
           params: {
             item_id: item.item_id,
             warehouse_id: response.data.warehouse_id
@@ -595,10 +595,10 @@ export default {
         item.item.unit = item.units.find(o => o.id == item.item.unit_default)
         item.dna = []
         let sumQty = 0
-        response.data.items.forEach(el => {
+        response.data.items.forEach(async (el) => {
           if (el.item_id == item.item_id) {
             if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
-              this.getDna({
+              await this.getDna({
                 itemId: el.item_id,
                 params: {
                   warehouse_id: response.data.warehouse_id
