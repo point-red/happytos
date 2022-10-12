@@ -680,8 +680,7 @@ export default {
     },
     onClickQuantity (row, index) {
       if (row.require_expiry_date == 1 || row.require_production_number == 1) {
-        if (this.loopHellDone === true)
-        {
+        if (this.loopHellDone === true) {
           row.warehouse_id = this.warehouseId
           row.index = index
           this.$refs.inventory.open(row, row.quantity)
