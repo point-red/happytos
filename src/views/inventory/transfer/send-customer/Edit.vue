@@ -592,7 +592,7 @@ export default {
         })
         item.item.unit = item.units.find(o => o.id == item.item.unit_default)
         item.dna = []
-        let sumQty = 0
+        const sumQty = 0
         // response.data.items.forEach(el => {
         //   if (el.item_id == item.item_id) {
         //     if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
