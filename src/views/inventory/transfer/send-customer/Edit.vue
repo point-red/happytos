@@ -519,7 +519,6 @@ export default {
   },
   data () {
     return {
-      loopHellDone: false, // TODO: FIX THIS
       id: this.$route.params.id,
       isSaving: false,
       isLoading: false,
@@ -550,17 +549,17 @@ export default {
     ...mapGetters('inventoryTransferItemCustomer', ['inventoryTransferItemCustomer']),
     ...mapGetters('auth', ['authUser'])
   },
-  async created () {
+  created () {
     this.isLoading = true
-    await this.find({
+    this.find({
       id: this.$route.params.id,
       params: {
         includes: 'form.requestApprovalTo;items.item.units;warehouse;customer;expedition;'
       }
-    }).then(async (response) => {
+    }).then(response => {
       this.isLoading = false
       const items = []
-      response.data.items.forEach(async (el) => {
+      response.data.items.forEach(el => {
         if (items.find(o => o.item_id == el.item_id) == undefined) {
           items.push({
             item_id: el.item_id,
@@ -579,9 +578,8 @@ export default {
           })
         }
       })
-      this.loopHellDone = false
-      items.forEach(async (item, index, array) => {
-        await this.get({
+      items.forEach(item => {
+        this.get({
           params: {
             item_id: item.item_id,
             warehouse_id: response.data.warehouse_id
@@ -595,10 +593,10 @@ export default {
         item.item.unit = item.units.find(o => o.id == item.item.unit_default)
         item.dna = []
         let sumQty = 0
-        response.data.items.forEach(async (el) => {
+        response.data.items.forEach(el => {
           if (el.item_id == item.item_id) {
             if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
-              await this.getDna({
+              this.getDna({
                 itemId: el.item_id,
                 params: {
                   warehouse_id: response.data.warehouse_id
@@ -626,9 +624,6 @@ export default {
           }
         })
         item.quantity = sumQty
-        if (index === array.length - 1) {
-          this.loopHellDone = true
-        }
       })
       this.form.date = response.data.form.date
       this.form.driver = response.data.driver
@@ -680,11 +675,9 @@ export default {
     },
     onClickQuantity (row, index) {
       if (row.require_expiry_date == 1 || row.require_production_number == 1) {
-        if (this.loopHellDone === true) {
-          row.warehouse_id = this.warehouseId
-          row.index = index
-          this.$refs.inventory.open(row, row.quantity)
-        }
+        row.warehouse_id = this.warehouseId
+        row.index = index
+        this.$refs.inventory.open(row, row.quantity)
       }
     },
     onClickUnit (row) {
