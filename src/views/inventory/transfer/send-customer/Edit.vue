@@ -626,7 +626,7 @@ export default {
           }
         })
         item.quantity = sumQty
-        if (index === array.length -1) {
+        if (index === array.length - 1) {
           this.loopHellDone = true
         }
       })
