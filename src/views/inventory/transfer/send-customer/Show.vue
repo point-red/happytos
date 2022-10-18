@@ -143,6 +143,12 @@
                 </tr>
                 <tr>
                   <td class="font-weight-bold">
+                    {{ $t('address') | uppercase }}
+                  </td>
+                  <td>{{ inventoryTransferItemCustomer.customer.address }}</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold">
                     {{ $t('driver') | uppercase }}
                   </td>
                   <td>{{ inventoryTransferItemCustomer.expedition.name }}</td>

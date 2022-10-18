@@ -59,6 +59,22 @@
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
+                      {{ $t('address') | uppercase }}
+                    </td>
+                    <td>
+                      <p-form-input
+                        id="customer_address"
+                        v-model="form.customer_address"
+                        name="customer_address"
+                        :label="$t('address')"
+                        :readonly="isExistCustomerAddress"
+                        :errors="form.errors.get('customer_address')"
+                        @errors="form.errors.set('customer_address', null)"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">
                       {{ $t('driver') | uppercase }}
                     </td>
                     <td>
@@ -534,6 +550,7 @@ export default {
     return {
       isSaving: false,
       isLoading: false,
+      isExistCustomerAddress: true,
       requestedBy: localStorage.getItem('fullName'),
       warehouseId: null,
       form: new Form({
@@ -543,6 +560,7 @@ export default {
         warehouse_name: null,
         customer_id: null,
         customer_name: null,
+        customer_address: null,
         expedition_id: null,
         expedition_name: null,
         plat: null,
@@ -583,6 +601,7 @@ export default {
   },
   methods: {
     ...mapActions('masterItem', ['find']),
+    ...mapActions('masterCustomer', ['update']),
     ...mapActions('inventoryTransferItemCustomer', ['create', 'approve', 'addHistories']),
     ...mapActions('inventoryInventoryWarehouseCurrentstock', ['get']),
     addItemRow () {
@@ -662,6 +681,12 @@ export default {
     chooseCustomer (customer) {
       this.form.customer_id = customer.id
       this.form.customer_name = customer.name
+      this.form.customer_address = customer.address
+      if (customer.address == null) {
+        this.isExistCustomerAddress = false
+      } else {
+        this.isExistCustomerAddress = true
+      }
     },
     chooseExpedition (expedition) {
       this.form.expedition_id = expedition.id
@@ -742,6 +767,14 @@ export default {
         })
         return
       }
+      if (this.form.customer_address == null) {
+        this.$notification.error('address cannot be null')
+        this.isSaving = false
+        this.form.errors.record({
+          request_approval_to: ['Address should not empty']
+        })
+        return
+      }
       let warningStock = false
       this.form.items.forEach(item => {
         if (item.balance < 0) {
@@ -760,6 +793,16 @@ export default {
       }
       this.form.increment_group = this.$moment(this.form.date).format('YYYYMM')
       this.form.items = this.form.items.filter(item => item.item_id)
+      if (!this.isExistCustomerAddress) {
+        this.update({
+          id: this.form.customer_id,
+          name: this.form.customer_name,
+          address: this.form.customer_address
+        }).catch(error => {
+          this.$notification.error(error.message)
+          this.form.errors.record(error.errors)
+        })
+      }
       this.create(this.form)
         .then(response => {
           this.isSaving = false
