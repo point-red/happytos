@@ -23,16 +23,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
-                      <p-date-picker
-                        id="date"
-                        v-model="form.date"
-                        name="date"
-                        :label="$t('date')"
-                        :errors="form.errors.get('date')"
-                        @errors="form.errors.set('date', null)"
-                      />
-                    </td>
+                    <td>{{ new Date() | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
@@ -300,7 +291,7 @@ export default {
         this.form.type_correction = response.data.typeCorrection
         this.form.warehouse_name = response.data.warehouse.name
         this.form.number = response.data.form.number
-        this.form.date = response.data.form.date
+        this.form.date = this.$moment().format('YYYY-MM-DD HH:mm:ss')
         this.form.notes = response.data.form.notes
         this.form.request_approval_to = response.data.form.requestApprovalToUser.id
         this.form.approver_name = response.data.form.requestApprovalToUser.fullName
@@ -390,6 +381,7 @@ export default {
           params: {
             item_id: selectedItem.item.id,
             warehouse_id: this.form.warehouse_id,
+            date_from: this.form.date,
             limit: 1
           }
         })
