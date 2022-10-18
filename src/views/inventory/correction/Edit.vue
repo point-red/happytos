@@ -291,7 +291,7 @@ export default {
         this.form.type_correction = response.data.typeCorrection
         this.form.warehouse_name = response.data.warehouse.name
         this.form.number = response.data.form.number
-        this.form.date = this.$moment().format('YYYY-MM-DD HH:mm:ss')
+        this.form.date = response.data.form.date
         this.form.notes = response.data.form.notes
         this.form.request_approval_to = response.data.form.requestApprovalToUser.id
         this.form.approver_name = response.data.form.requestApprovalToUser.fullName
