@@ -49,7 +49,7 @@
               <td>
                 <p-quantity
                   :id="'quantity' + index"
-                  v-model="option.quantity"
+                  v-model="option.quantityIn"
                   :name="'quantity' + index"
                   :units="units"
                   :unit="unit"
@@ -166,18 +166,20 @@ export default {
       }).then(response => {
         this.options = this.inventories
         this.options.forEach(inventory => {
-          inventory.quantity = 0
+          inventory.quantityIn = 0
           this.stockCorrectionOptions.forEach(el => {
             if (inventory.item_id == el.item_id &&
               inventory.expiry_date == el.expiry_date &&
               inventory.production_number == el.production_number) {
               inventory.quantity = el.quantity
+              inventory.quantityIn = el.quantity
               el.exist = true
             }
           })
         })
         for (const data of this.stockCorrectionOptions) {
           if (!data.exist) {
+            data.quantityIn = data.quantity
             this.options.push(data)
           }
         }
@@ -192,6 +194,7 @@ export default {
         expiry_date: this.$moment().format('YYYY-MM-DD'),
         production_number: null,
         quantity: 0,
+        quantityIn: 0,
         unit: this.unit,
         unit_reference: this.unit.name,
         item_id: this.itemId,
@@ -206,7 +209,8 @@ export default {
     updateTotalQuantity () {
       this.totalQuantity = null
       this.options.map((key, value) => {
-        this.totalQuantity += parseFloat(key.quantity || 0)
+        key.quantity = key.quantityIn
+        this.totalQuantity += parseFloat(key.quantityIn || 0)
       })
     },
     onSubmit () {

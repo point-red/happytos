@@ -23,16 +23,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
-                      <p-date-picker
-                        id="date"
-                        v-model="form.date"
-                        name="date"
-                        :label="$t('date')"
-                        :errors="form.errors.get('date')"
-                        @errors="form.errors.set('date', null)"
-                      />
-                    </td>
+                    <td>{{ new Date() | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
@@ -477,6 +468,7 @@ export default {
       }
     },
     updateDna (e) {
+      console.log(e)
       if (this.form.type_correction === 'out') {
         e.dna.forEach(function (dna, index) {
           if (dna.quantity > 0) {

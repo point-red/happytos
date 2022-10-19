@@ -93,7 +93,7 @@
                   <td class="font-weight-bold">
                     {{ $t('date') | uppercase }}
                   </td>
-                  <td>{{ stockCorrection.date | dateFormat('DD MMMM YYYY') }}</td>
+                  <td>{{ stockCorrection.form.date | dateFormat('DD MMMM YYYY') }}</td>
                 </tr>
                 <tr>
                   <td
