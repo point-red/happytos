@@ -24,7 +24,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
+                    <!-- <td>
                       <p-date-picker
                         id="date"
                         v-model="form.date"
@@ -33,7 +33,8 @@
                         :errors="form.errors.get('date')"
                         @errors="form.errors.set('date', null)"
                       />
-                    </td>
+                    </td> -->
+                    <td>{{ form.date | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
@@ -742,7 +743,8 @@ export default {
         this.get({
           params: {
             item_id: item.id,
-            warehouse_id: this.form.warehouse_id
+            warehouse_id: this.form.warehouse_id,
+            date_form: this.form.date
           }
         }).then(response => {
           row.stock = response
@@ -808,19 +810,12 @@ export default {
           this.isSaving = false
           this.$notification.success('create success')
           Object.assign(this.$data, this.$options.data.call(this))
-          this.approve({
-            id: response.data.id
-          }).then(response => {
-            this.$router.push('/inventory/transfer/send-customer/' + response.data.id)
-            this.addHistories({ id: response.data.id, activity: 'Created' })
-              .catch(error => {
-                this.$notification.error(error.message)
-                this.form.errors.record(error.errors)
-              })
-          }).catch(error => {
-            this.$notification.error(error.message + ', please edit the document')
-            console.log(error.message)
-          })
+          this.$router.push('/inventory/transfer/send-customer/' + response.data.id)
+          this.addHistories({ id: response.data.id, activity: 'Created' })
+            .catch(error => {
+              this.$notification.error(error.message)
+              this.form.errors.record(error.errors)
+            })
         }).catch(error => {
           this.isSaving = false
           this.$notification.error(error.message)
