@@ -191,7 +191,7 @@ export default {
     },
     addDna () {
       this.options.push({
-        expiry_date: this.$moment().format('YYYY-MM-DD'),
+        expiry_date: this.$moment().format('YYYY-MM-DD 00:00:00'),
         production_number: null,
         quantity: 0,
         quantityIn: 0,
@@ -214,6 +214,27 @@ export default {
       })
     },
     onSubmit () {
+      const stockCorrectionOptions = []
+      for (const element of this.options) {
+        let exist = false
+        for (const data of stockCorrectionOptions) {
+          if (this.$moment(element.expiry_date).format('YYYY-MM-DD') === this.$moment(data.expiry_date).format('YYYY-MM-DD') &&
+              element.production_number === data.production_number) {
+            data.quantityIn = parseFloat(data.quantityIn) + parseFloat(element.quantityIn)
+            data.quantity = data.quantityIn
+            exist = true
+          }
+        }
+        if (!exist) {
+          if (this.$moment(element.expiry_date).hour() === 0) {
+            console.log('masuk')
+            element.expiry_date = this.$moment(element.expiry_date).format('YYYY-MM-DD 00:00:00')
+          }
+          stockCorrectionOptions.push(element)
+        }
+      }
+      console.log(stockCorrectionOptions)
+      this.options = stockCorrectionOptions
       this.$emit('submit', {
         dna: this.options,
         unit: this.unit.name,
