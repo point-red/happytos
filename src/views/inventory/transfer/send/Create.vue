@@ -24,7 +24,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
+                    <!-- <td>
                       <p-date-picker
                         id="date"
                         v-model="form.date"
@@ -33,7 +33,8 @@
                         :errors="form.errors.get('date')"
                         @errors="form.errors.set('date', null)"
                       />
-                    </td>
+                    </td> -->
+                    <td>{{ form.date | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
@@ -460,7 +461,8 @@ export default {
         this.get({
           params: {
             item_id: item.id,
-            warehouse_id: this.form.warehouse_id
+            warehouse_id: this.form.warehouse_id,
+            date_form: this.form.date
           }
         }).then(response => {
           row.stock = response

@@ -30,7 +30,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
+                    <!-- <td>
                       <p-date-picker
                         id="date"
                         v-model="form.date"
@@ -39,7 +39,8 @@
                         :errors="form.errors.get('date')"
                         @errors="form.errors.set('date', null)"
                       />
-                    </td>
+                    </td> -->
+                    <td>{{ form.date | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
@@ -307,99 +308,71 @@ export default {
     ...mapGetters('inventoryTransferItem', ['inventoryTransferItem']),
     ...mapGetters('auth', ['authUser'])
   },
-  created () {
+  async created () {
     this.isLoading = true
-    this.find({
-      id: this.$route.params.id,
-      params: {
-        includes: 'form.requestApprovalTo;items.item.units;warehouse;to_warehouse'
+    const response = await this.getData()
+    const items = []
+    response.data.items.forEach(el => {
+      if (items.find(o => o.item_id == el.item_id) == undefined) {
+        items.push({
+          item_id: el.item_id,
+          item_name: el.item_name,
+          unit: el.unit,
+          converter: el.converter,
+          quantity: el.quantity,
+          require_production_number: el.item.require_production_number,
+          require_expiry_date: el.item.require_expiry_date,
+          stock: '',
+          balance: el.balance,
+          item: el.item,
+          item_label: el.item.label,
+          units: el.item.units,
+          notes: el.notes
+        })
       }
-    }).then(response => {
-      this.isLoading = false
-      const items = []
-      response.data.items.forEach(el => {
-        if (items.find(o => o.item_id == el.item_id) == undefined) {
-          items.push({
-            item_id: el.item_id,
-            item_name: el.item_name,
-            unit: el.unit,
-            converter: el.converter,
-            quantity: el.quantity,
-            require_production_number: el.item.require_production_number,
-            require_expiry_date: el.item.require_expiry_date,
-            stock: '',
-            balance: el.balance,
-            item: el.item,
-            item_label: el.item.label,
-            units: el.item.units,
-            notes: el.notes
-          })
-        }
-      })
-      items.forEach(item => {
-        this.get({
-          params: {
-            item_id: item.item_id,
-            warehouse_id: response.data.warehouse_id
-          }
-        }).then(response => {
-          item.stock = response
-        }).catch(error => {
-          this.isLoading = false
-          this.$notification.error(error.message)
-        })
-        item.item.unit = item.units.find(o => o.id == item.item.unit_default)
-        item.dna = []
-        let sumQty = 0
-        response.data.items.forEach(el => {
-          if (item.item_id == el.item_id) {
-            if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
-              this.getDna({
-                itemId: el.item_id,
-                params: {
-                  warehouse_id: response.data.warehouse_id
-                }
-              }).then(response => {
-                response.data.forEach(val => {
-                  if (el.item.require_expiry_date == 0) {
-                    if (val.production_number == el.production_number) {
-                      val.quantity = el.quantity
-                      item.dna.push(val)
-                    }
-                  } else {
-                    if (val.production_number == el.production_number && val.expiry_date == el.expiry_date) {
-                      val.quantity = el.quantity
-                      item.dna.push(val)
-                    }
-                  }
-                })
-                this.isLoading = false
-              }).catch(error => {
-                this.isLoading = false
-              })
-            }
-            sumQty += el.quantity
-          }
-        })
-        item.quantity = sumQty
-      })
-      this.form.date = response.data.form.date
-      this.form.driver = response.data.driver
-      this.warehouseId = response.data.warehouse_id
-      this.form.warehouse_id = response.data.warehouse_id
-      this.form.warehouse_name = response.data.warehouse.name
-      this.form.to_warehouse_id = response.data.to_warehouse_id
-      this.form.to_warehouse_name = response.data.to_warehouse.name
-      this.form.notes = response.data.form.notes
-      this.form.items = items
-      this.form.request_approval_to = response.data.form.request_approval_to.id
-      this.form.approver_name = response.data.form.request_approval_to.full_name
-      this.form.approver_email = response.data.form.request_approval_to.email
-      this.addItemRow()
-    }).catch(error => {
-      this.isLoading = false
-      this.$notification.error(error.message)
     })
+    for (const item of items) {
+      item.stock = await this.getStock(item.item_id, response.data.warehouse_id, response.data.form.date)
+      item.item.unit = item.units.find(o => o.id == item.item.unit_default)
+      item.dna = []
+      let sumQty = 0
+      for (const el of response.data.items) {
+        if (el.item_id == item.item_id) {
+          if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
+            const itemDna = await this.getItemDna(el.item_id, response.data.warehouse_id)
+            itemDna.data.forEach(val => {
+              if (el.item.require_expiry_date == 0) {
+                if (val.production_number == el.production_number) {
+                  val.quantity = el.quantity
+                  item.dna.push(val)
+                }
+              } else {
+                if (val.production_number == el.production_number && val.expiry_date == el.expiry_date) {
+                  val.quantity = el.quantity
+                  item.dna.push(val)
+                }
+              }
+            })
+          }
+          sumQty += el.quantity
+        }
+      }
+      item.quantity = sumQty
+    }
+    this.form.date = response.data.form.date
+    this.form.driver = response.data.driver
+    this.warehouseId = response.data.warehouse_id
+    this.form.warehouse_id = response.data.warehouse_id
+    this.form.warehouse_name = response.data.warehouse.name
+    this.form.to_warehouse_id = response.data.to_warehouse_id
+    this.form.to_warehouse_name = response.data.to_warehouse.name
+    this.form.notes = response.data.form.notes
+    this.form.items = items
+    this.form.request_approval_to = response.data.form.request_approval_to.id
+    this.form.approver_name = response.data.form.request_approval_to.full_name
+    this.form.approver_email = response.data.form.request_approval_to.email
+    this.addItemRow()
+    this.isLoading = false
   },
   methods: {
     ...mapActions('masterItem', ['find']),
@@ -462,7 +435,8 @@ export default {
                 item_id: item.item_id,
                 warehouse_id: warehouse.id,
                 expiry_date: item.expiry_date,
-                production_number: item.production_number
+                production_number: item.production_number,
+                date_form: this.form.date
               }
             }).then(response => {
               item.stock = response
@@ -521,7 +495,8 @@ export default {
         this.get({
           params: {
             item_id: item.id,
-            warehouse_id: this.form.warehouse_id
+            warehouse_id: this.form.warehouse_id,
+            date_form: this.form.date
           }
         }).then(response => {
           row.stock = response
@@ -540,6 +515,43 @@ export default {
       if (row.id != undefined && row.dna != undefined) {
         row.dna[0].quantity = row.quantity
         console.log(row)
+      }
+    },
+    async getData () {
+      try {
+        return await this.find({
+          id: this.$route.params.id,
+          params: {
+            includes: 'form.requestApprovalTo;items.item.units;warehouse;to_warehouse'
+          }
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    async getStock (itemId, warehouseId, dateForm) {
+      try {
+        return await this.get({
+          params: {
+            item_id: itemId,
+            warehouse_id: warehouseId,
+            date_form: dateForm
+          }
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    async getItemDna (itemId, warehouseId) {
+      try {
+        return await this.getDna({
+          itemId: itemId,
+          params: {
+            warehouse_id: warehouseId
+          }
+        })
+      } catch (e) {
+        console.log(e)
       }
     },
     onSubmit () {
