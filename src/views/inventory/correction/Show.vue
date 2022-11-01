@@ -14,6 +14,7 @@
     <p-show-form-approval-status-custom
       form-name="Stock Correction"
       :is-loading="isLoading"
+      :can-approve="canApprove"
       :approved-by="stockCorrection.form.requestApprovalToUser.fullName"
       :cancellation-status="stockCorrection.form.cancellationStatus"
       :approval-status="stockCorrection.form.approvalStatus"
@@ -25,6 +26,7 @@
     <p-show-form-cancellation-status-custom
       form-name="Stock Correction"
       :is-loading="isLoading"
+      :can-approve-cancellation="canApproveCancellation"
       :approved-by="stockCorrection.form.requestApprovalToUser.fullName"
       :cancellation-status="stockCorrection.form.cancellationStatus"
       :cancellation-approval-reason="stockCorrection.form.cancellationApprovalReason"
@@ -267,7 +269,9 @@ export default {
     return {
       id: this.$route.params.id,
       isLoading: false,
-      isDeleting: false
+      isDeleting: false,
+      canApprove: false,
+      canApproveCancellation: false
     }
   },
   computed: {
@@ -310,6 +314,12 @@ export default {
             'form.branch'
         }
       }).then(response => {
+        if (localStorage.getItem('userId') == this.stockCorrection.form.requestApprovalTo) {
+          this.canApprove = true
+        }
+        if (localStorage.getItem('userId') == this.stockCorrection.form.requestCancellationTo) {
+          this.canApproveCancellation = true
+        }
       }).catch(error => {
         this.$notification.error(error.message)
       }).finally(() => {

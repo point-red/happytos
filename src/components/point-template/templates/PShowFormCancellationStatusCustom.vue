@@ -45,7 +45,7 @@
           <b>{{ $t('reason') | uppercase }}</b> : <pre>{{ requestCancellationReason | uppercase }}</pre>
         </p>
         <hr>
-        <div v-if="$permission.has('approve purchase request')">
+        <div v-if="$permission.has('approve purchase request') && canApproveCancellation">
           <button
             type="button"
             class="btn btn-sm btn-primary mr-5"
@@ -96,6 +96,10 @@ export default {
     formName: {
       type: String,
       default: ''
+    },
+    canApproveCancellation: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {

@@ -25,7 +25,7 @@
           {{ $t('pending approval warning', { form: formName, approvedBy: approvedBy }) | uppercase }}
         </p>
         <hr>
-        <div v-if="$permission.has('approve purchase request')">
+        <div v-if="$permission.has('approve purchase request') && canApprove">
           <button
             type="button"
             class="btn btn-sm btn-primary mr-5"
@@ -76,6 +76,10 @@ export default {
     formName: {
       type: String,
       default: ''
+    },
+    canApprove: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {
