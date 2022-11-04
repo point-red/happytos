@@ -301,7 +301,9 @@ export default {
       handler: function () {
         this.$router.replace({
           query: {
-            ...this.$route.query
+            ...this.$route.query,
+            date_from: this.date.start,
+            date_to: this.date.end
           }
         })
         this.getInventoryRequest()
@@ -407,7 +409,9 @@ export default {
           warehouse_id: this.warehouseId,
           filter_like: {
             'form.number': this.searchText
-          }
+          },
+          date_from: this.$route.query.date_from ? this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00') : this.$moment().format('YYYY-MM-01 00:00:00'),
+          date_to: this.$route.query.date_to ? this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59') : this.$moment().format('YYYY-MM-DD 23:59:59')
         }
       }).then(response => {
         let total = 0
