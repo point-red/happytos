@@ -30,7 +30,7 @@
                     <td class="font-weight-bold">
                       {{ $t('date') | uppercase }}
                     </td>
-                    <td>
+                    <!-- <td>
                       <p-date-picker
                         id="date"
                         v-model="form.date"
@@ -39,7 +39,8 @@
                         :errors="form.errors.get('date')"
                         @errors="form.errors.set('date', null)"
                       />
-                    </td>
+                    </td> -->
+                    <td>{{ form.date | dateFormat('DD MMMM YYYY') }}</td>
                   </tr>
                   <tr>
                     <td class="font-weight-bold">
