@@ -45,6 +45,17 @@ const actions = {
           reject(error)
         })
     })
+  },
+  getEdit ({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      api.get(url + '/' + payload.itemId + '/edit', payload)
+        .then(response => {
+          commit('FETCH_ARRAY', response)
+          resolve(response)
+        }).catch(error => {
+          reject(error)
+        })
+    })
   }
 }
 

@@ -435,7 +435,7 @@ export default {
             console.log(error.message)
           })
       }).catch(error => {
-        this.$notification.error(error.message + ', please edit the document')
+        this.$notification.error(error.message)
         console.log(error.message)
       })
     },

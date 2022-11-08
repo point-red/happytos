@@ -235,10 +235,11 @@
         </p-block>
       </div>
     </form>
-    <m-inventory-out
-      :id="'inventory'"
-      ref="inventory"
+    <m-inventory-out-edit
+      :id="'inventory_edit'"
+      ref="inventory_edit"
       :disable-unit-selection="true"
+      :formable="{formable_type: inventoryTransferItem.form.formable_type, formable_id: inventoryTransferItem.form.formable_id}"
       @updated="updateDna($event)"
     />
     <m-warehouse
@@ -339,7 +340,7 @@ export default {
       for (const el of response.data.items) {
         if (el.item_id == item.item_id) {
           if (el.item.require_production_number == 1 || el.item.require_expiry_date == 1) {
-            const itemDna = await this.getItemDna(el.item_id, response.data.warehouse_id)
+            const itemDna = await this.getItemDna(el.item_id, response.data.warehouse_id, response.data.form.formable_type, response.data.form.formable_id)
             itemDna.data.forEach(val => {
               if (el.item.require_expiry_date == 0) {
                 if (val.production_number == el.production_number) {
@@ -378,7 +379,7 @@ export default {
     ...mapActions('masterItem', ['find']),
     ...mapActions('inventoryTransferItem', ['find', 'update', 'addHistories']),
     ...mapActions('inventoryInventoryWarehouseCurrentstock', ['get']),
-    ...mapActions('inventoryInventoryDna', { getDna: 'get' }),
+    ...mapActions('inventoryInventoryDna', { getDna: 'getEdit' }),
     addItemRow () {
       this.form.items.push({
         item_id: null,
@@ -403,7 +404,7 @@ export default {
       if (row.require_expiry_date == 1 || row.require_production_number == 1) {
         row.warehouse_id = this.warehouseId
         row.index = index
-        this.$refs.inventory.open(row, row.quantity)
+        this.$refs.inventory_edit.open(row, row.quantity)
       }
     },
     onClickUnit (row) {
@@ -542,12 +543,13 @@ export default {
         console.log(e)
       }
     },
-    async getItemDna (itemId, warehouseId) {
+    async getItemDna (itemId, warehouseId, formableType, formableId) {
       try {
         return await this.getDna({
           itemId: itemId,
           params: {
-            warehouse_id: warehouseId
+            warehouse_id: warehouseId,
+            formable: { formable_type: formableType, formable_id: formableId }
           }
         })
       } catch (e) {
