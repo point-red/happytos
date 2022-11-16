@@ -285,6 +285,7 @@ export default {
       item_label: null,
       warehouseId: this.$route.params.warehouseId,
       warehouseName: null,
+      openingBalance: 0,
       date: {
         start: this.$route.query.date_from ? this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00') : this.$moment().format('YYYY-MM-01 00:00:00'),
         end: this.$route.query.date_to ? this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59') : this.$moment().format('YYYY-MM-DD 23:59:59')
@@ -294,7 +295,7 @@ export default {
   computed: {
     ...mapGetters('masterItem', ['item']),
     ...mapGetters('masterWarehouse', ['warehouse']),
-    ...mapGetters('inventoryInventoryDetail', ['inventories', 'pagination', 'openingBalance', 'openingBalanceCurrentPage', 'stockIn', 'stockOut', 'endingBalance'])
+    ...mapGetters('inventoryInventoryDetail', ['inventories', 'pagination', 'openingBalanceCurrentPage', 'stockIn', 'stockOut', 'endingBalance'])
   },
   watch: {
     date: {
@@ -306,11 +307,10 @@ export default {
             date_to: this.date.end
           }
         })
-        this.getInventoryRequest()
       },
       deep: true
     },
-    $route (to, from) {
+    async $route (to, from) {
       if (to.params.warehouseId != from.params.warehouseId || to.params.id != from.params.id) {
         this.$route.query.page = 1
       }
@@ -318,18 +318,28 @@ export default {
       this.warehouseId = parseInt(this.$route.params.warehouseId)
       this.date.start = this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00')
       this.date.end = this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59')
-      this.getInventoryRequest()
+      this.isLoading = true
+      await this.getInventoryRequest()
+      const response = await this.getOpeningBalance()
+      this.openingBalance = response.data[0].opening_balance
+      this.computeTotalQty()
+      this.isLoading = false
     }
   },
-  created () {
+  async created () {
+    this.isLoading = true
     this.warehouseId = this.$route.params.warehouseId
     this.id = this.$route.params.id
     if (!this.$route.query.page) {
       this.$route.query.page = 1
     }
+    await this.getInventoryRequest()
+    const response = await this.getOpeningBalance()
+    this.openingBalance = response.data[0].opening_balance
     this.getItemRequest()
     this.getWarehouseRequest()
-    this.getInventoryRequest()
+    this.computeTotalQty()
+    this.isLoading = false
   },
   methods: {
     ...mapActions('masterItem', ['find', 'delete']),
@@ -339,6 +349,7 @@ export default {
     ...mapActions('masterWarehouse', {
       findWarehouse: 'find'
     }),
+    ...mapActions('inventoryInventoryWarehouseRecapitulation', ['get']),
     getItemRequest () {
       this.find({
         id: this.id,
@@ -375,7 +386,6 @@ export default {
       this.id = option.id
       this.item_label = option.label
       this.find({ id: option.id })
-      this.getInventoryRequest()
     },
     chooseWarehouse (option) {
       this.$router.replace({
@@ -393,38 +403,60 @@ export default {
       this.warehouseId = option.id
       this.warehouseName = option.name
       this.getWarehouseRequest()
-      this.getInventoryRequest()
+    },
+    computeTotalQty () {
+      this.isLoading = true
+      let total = parseInt(this.openingBalance)
+      this.inventories.forEach(element => {
+        total += element.quantity
+        element.total_quantity = total
+      })
+      this.isLoading = false
     },
     async getInventoryRequest () {
-      this.isLoading = true
-      await this.findInventory({
-        itemId: this.id,
-        params: {
-          includes: 'form;warehouse',
-          sort_by: 'form.date',
-          fields: 'inventory.*',
-          searchText: this.$route.query.search,
-          page: parseInt(this.$route.query.page) || 1,
-          limit: 9999999,
-          warehouse_id: this.warehouseId,
-          filter_like: {
-            'form.number': this.searchText
-          },
-          date_from: this.$route.query.date_from ? this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00') : this.$moment().format('YYYY-MM-01 00:00:00'),
-          date_to: this.$route.query.date_to ? this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59') : this.$moment().format('YYYY-MM-DD 23:59:59')
-        }
-      }).then(response => {
-        let total = 0
-        this.inventories.forEach(element => {
-          total += element.quantity
-          element.total_quantity = total
+      try {
+        return await this.findInventory({
+          itemId: this.id,
+          params: {
+            includes: 'form;warehouse',
+            sort_by: 'form.date',
+            fields: 'inventory.*',
+            searchText: this.$route.query.search,
+            page: parseInt(this.$route.query.page) || 1,
+            limit: 9999999,
+            warehouse_id: this.warehouseId,
+            filter_like: {
+              'form.number': this.searchText
+            },
+            date_from: this.$route.query.date_from ? this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00') : this.$moment().format('YYYY-MM-01 00:00:00'),
+            date_to: this.$route.query.date_to ? this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59') : this.$moment().format('YYYY-MM-DD 23:59:59')
+          }
         })
-        this.lastPage = this.pagination.last_page
-        this.isLoading = false
-      }).catch(error => {
-        this.isLoading = false
-        this.$notification.error(error.message)
-      })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    async getOpeningBalance () {
+      try {
+        return await this.get({
+          id: this.id,
+          params: {
+            item_id: this.id,
+            warehouse_id: this.warehouseId,
+            sort_by: 'name',
+            limit: 10,
+            page: this.currentPage,
+            date_from: this.$moment(this.$route.query.date_from).format('YYYY-MM-DD 00:00:00'),
+            date_to: this.$moment(this.$route.query.date_to).format('YYYY-MM-DD 23:59:59'),
+            filter_like: {
+              code: this.searchText,
+              name: this.searchText
+            }
+          }
+        })
+      } catch (e) {
+        console.log(e)
+      }
     },
     updatePage (value) {
       this.$route.query.page = value
