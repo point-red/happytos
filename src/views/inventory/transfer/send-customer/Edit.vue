@@ -526,6 +526,8 @@ export default {
       isLoading: false,
       requestedBy: localStorage.getItem('fullName'),
       warehouseId: null,
+      formableType: null,
+      formableId: null,
       form: new Form({
         id: this.$route.params.id,
         increment_group: this.$moment().format('YYYYMM'),
@@ -575,7 +577,7 @@ export default {
       }
     })
     for (const item of items) {
-      item.stock = await this.getStock(item.item_id, response.data.warehouse_id, response.data.form.date)
+      item.stock = await this.getStock(item.item_id, response.data.warehouse_id, response.data.form.formable_type, response.data.form.formable_id)
       item.item.unit = item.units.find(o => o.id == item.item.unit_default)
       item.dna = []
       let sumQty = 0
@@ -596,8 +598,20 @@ export default {
                 }
               }
             })
+            item.dna.forEach(val => {
+              if (el.item.require_expiry_date == 0) {
+                if (val.production_number == el.production_number) {
+                  sumQty += el.quantity
+                }
+              } else {
+                if (val.production_number == el.production_number && val.expiry_date == el.expiry_date) {
+                  sumQty += el.quantity
+                }
+              }
+            })
+          } else {
+            sumQty += el.quantity
           }
-          sumQty += el.quantity
         }
       }
       item.quantity = sumQty
@@ -605,6 +619,8 @@ export default {
     this.form.date = response.data.form.date
     this.form.driver = response.data.driver
     this.warehouseId = response.data.warehouse_id
+    this.formableType = response.data.form.formable_type
+    this.formableId = response.data.form.formable_id
     this.form.warehouse_id = response.data.warehouse_id
     this.form.warehouse_name = response.data.warehouse.name
     this.form.customer_id = response.data.customer_id
@@ -710,17 +726,27 @@ export default {
       this.form.approver_name = value.fullName
       this.form.approver_email = value.email
     },
-    chooseItem (item) {
+    async chooseItem (item) {
       if (item.id == null) {
         this.clearItem(item.index)
         return
       }
-
+      let duplicateItem = false
+      this.form.items.forEach(element => {
+        if (item.id == element.item_id) {
+          duplicateItem = true
+        }
+      })
+      if (duplicateItem) {
+        return
+      }
       const row = this.form.items[item.index]
       row.item = item
       row.item_id = item.id
       row.item_name = item.name
       row.item_label = item.label
+      row.quantity = 0
+      row.dna = []
       row.require_production_number = item.require_production_number
       row.require_expiry_date = item.require_expiry_date
       row.notes = item.notes
@@ -744,19 +770,7 @@ export default {
         id: item.id
       })
       if (this.form.warehouse_id) {
-        this.get({
-          params: {
-            item_id: item.id,
-            warehouse_id: this.form.warehouse_id,
-            date_form: this.form.date
-          }
-        }).then(response => {
-          row.stock = response
-          this.isLoading = false
-        }).catch(error => {
-          this.isLoading = false
-          this.$notification.error(error.message)
-        })
+        row.stock = await this.getStock(item.id, this.form.warehouse_id, this.formableType, this.formableId)
       }
     },
     ComputeBalance (row) {
@@ -781,13 +795,13 @@ export default {
         console.log(e)
       }
     },
-    async getStock (itemId, warehouseId, dateForm) {
+    async getStock (itemId, warehouseId, formableType, formableId) {
       try {
         return await this.get({
           params: {
             item_id: itemId,
             warehouse_id: warehouseId,
-            date_form: dateForm
+            formable: { formable_type: formableType, formable_id: formableId }
           }
         })
       } catch (e) {
@@ -823,13 +837,23 @@ export default {
         return
       }
       let warningStock = false
+      let warningMessage = ''
       this.form.items.forEach(item => {
         if (item.balance < 0) {
           warningStock = true
+          warningMessage = 'Stock ' + item.item_label + ' not enough! Current stock = ' + item.stock
+        }
+        if (item.require_production_number == 1 || item.require_expiry_date == 1) {
+          item.dna.forEach(el => {
+            if (el.remaining < el.quantity) {
+              warningStock = true
+              warningMessage = 'Stock ' + item.item_label + '(PID:' + el.production_number + ') (E/D:' + this.$moment(el.expiry_date).format('YYYY-MM-DD') + ')' + ' not enough! Current stock = ' + el.remaining
+            }
+          })
         }
       })
       if (warningStock) {
-        this.$notification.error('not enough stock!')
+        this.$notification.error(warningMessage)
         this.isSaving = false
         return
       }

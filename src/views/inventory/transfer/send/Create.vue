@@ -435,6 +435,8 @@ export default {
       row.item_id = item.id
       row.item_name = item.name
       row.item_label = item.label
+      row.quantity = 0
+      row.dna = []
       row.require_production_number = item.require_production_number
       row.require_expiry_date = item.require_expiry_date
       row.notes = item.notes
@@ -488,13 +490,23 @@ export default {
         return
       }
       let warningStock = false
+      let warningMessage = ''
       this.form.items.forEach(item => {
         if (item.balance < 0) {
           warningStock = true
+          warningMessage = 'Stock ' + item.item_label + ' not enough! Current stock = ' + item.stock
+        }
+        if (item.require_production_number == 1 || item.require_expiry_date == 1) {
+          item.dna.forEach(el => {
+            if (el.remaining < el.quantity) {
+              warningStock = true
+              warningMessage = 'Stock ' + item.item_label + '(PID:' + el.production_number + ') (E/D:' + this.$moment(el.expiry_date).format('YYYY-MM-DD') + ')' + ' not enough! Current stock = ' + el.remaining
+            }
+          })
         }
       })
       if (warningStock) {
-        this.$notification.error('not enough stock!')
+        this.$notification.error(warningMessage)
         this.isSaving = false
         return
       }
