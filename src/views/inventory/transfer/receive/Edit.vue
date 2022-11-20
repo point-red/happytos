@@ -281,7 +281,6 @@ export default {
             'transfer_item.items;'
       }
     }).then(response => {
-      this.isLoading = false
       this.form.date = response.data.form.date
       this.form.warehouse_id = response.data.warehouse_id
       this.form.from_warehouse_id = response.data.from_warehouse_id
@@ -290,11 +289,32 @@ export default {
       this.form.transfer_item_id = response.data.transfer_item_id
       this.form.transfer_item_form_number = response.data.transfer_item.form.number
       this.form.items = response.data.items
+      this.form.items.forEach(item => {
+        item.stock = ''
+        this.get({
+          params: {
+            item_id: item.item_id,
+            warehouse_id: this.form.warehouse_id,
+            expiry_date: item.expiry_date,
+            production_number: item.production_number
+          }
+        }).then(stock => {
+          if (response.data.form.approval_status == 1) {
+            item.stock = stock - item.quantity
+          } else {
+            item.stock = stock
+          }
+        }).catch(error => {
+          this.isLoading = false
+          this.$notification.error(error.message)
+        })
+      })
       this.form.notes = response.data.form.notes
       this.form.request_approval_to = response.data.form.request_approval_to.id
       this.form.approver_name = response.data.form.request_approval_to.full_name
       this.form.approver_email = response.data.form.request_approval_to.email
       this.form.created_by = response.data.form.created_by.full_name
+      this.isLoading = false
     }).catch(error => {
       this.isLoading = false
       this.$notification.error(error.message)
