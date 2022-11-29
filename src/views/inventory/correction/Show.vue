@@ -57,12 +57,12 @@
                 >
                   {{ $t('create') | uppercase }}
                 </router-link>
-                <router-link
+                <!-- <router-link
                   :to="{ name: 'inventory.correction.edit', params: { id: stockCorrection.id }}"
                   class="btn btn-sm btn-outline-secondary mr-5"
                 >
                   {{ $t('edit') | uppercase }}
-                </router-link>
+                </router-link> -->
                 <button
                   v-if="stockCorrection.form.cancellationStatus == null || stockCorrection.form.cancellationStatus == -1"
                   class="btn btn-sm btn-outline-secondary mr-5"
