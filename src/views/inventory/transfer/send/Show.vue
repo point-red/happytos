@@ -79,13 +79,13 @@
                   >
                     {{ $t('create') | uppercase }}
                   </router-link>
-                  <router-link
+                  <!--<router-link
                     v-if="$permission.has('update transfer item')"
                     :to="{ name: 'inventory.transfer.send.edit', params: { id: inventoryTransferItem.id }}"
                     class="btn btn-sm btn-outline-secondary mr-5"
                   >
                     {{ $t('edit') | uppercase }}
-                  </router-link>
+                  </router-link>-->
                   <button
                     v-if="$permission.has('delete transfer item') && (inventoryTransferItem.form.cancellation_status == null || inventoryTransferItem.form.cancellation_status == -1)"
                     class="btn btn-sm btn-outline-secondary mr-5"
