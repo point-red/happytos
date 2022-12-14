@@ -435,7 +435,7 @@ export default {
           .catch(error => {
             console.log(error.message)
           })
-          this.isLoading = false
+        this.isLoading = false
       }).catch(error => {
         this.$notification.error(error.message)
         console.log(error.message)
