@@ -698,7 +698,7 @@ export default {
       this.form.approver_name = value.fullName
       this.form.approver_email = value.email
     },
-    chooseItem (item) {
+    async chooseItem (item) {
       if (item.id == null) {
         this.clearItem(item.index)
         return
@@ -738,7 +738,7 @@ export default {
       if (isNeedNewRow) {
         this.addItemRow()
       }
-      this.find({
+      await this.find({
         id: item.id
       })
       if (this.form.warehouse_id) {

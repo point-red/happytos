@@ -362,11 +362,11 @@ export default {
     onSubmit () {
       this.isSaving = true
       let formSendDone = 1
-      // if (this.authUser.warehouse == null || this.authUser.warehouse.id != this.form.warehouse_id) {
-      //   this.$notification.error('please set as default warehouse')
-      //   this.isSaving = false
-      //   return
-      // }
+      if (this.authUser.warehouse == null || this.authUser.warehouse.id != this.form.warehouse_id) {
+        this.$notification.error('please set as default warehouse')
+        this.isSaving = false
+        return
+      }
       if (this.form.request_approval_to == null) {
         this.$notification.error('approval cannot be null')
         this.isSaving = false
