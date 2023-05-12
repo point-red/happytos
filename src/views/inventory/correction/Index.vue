@@ -92,23 +92,6 @@
                 </div>
               </p-form-row>
             </div>
-            <div class="col-sm-3 text-center">
-              <p-form-row
-                id="form-approval-status"
-                name="form-approval-status"
-                :label="$t('approval status')"
-                :is-horizontal="false"
-              >
-                <div slot="body">
-                  <span
-                    class="select-link"
-                    @click="$refs.formApprovalStatus.open()"
-                  >
-                    {{ formApprovalStatus.label || $t('select') | uppercase }}
-                  </span>
-                </div>
-              </p-form-row>
-            </div>
           </div>
           <hr>
         </div>
