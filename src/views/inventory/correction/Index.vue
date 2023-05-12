@@ -126,6 +126,7 @@
                 Quantity
               </th>
               <th>Approval</th>
+              <th>Status</th>
             </tr>
             <template v-for="(stockCorrection, index) in stockCorrections">
               <tr
@@ -168,6 +169,26 @@
                     class="badge badge-success"
                   >
                     {{ $t('approved') | uppercase }}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-if="stockCorrection.form.requestCancellationAt != null && stockCorrection.form.cancellationStatus == 0"
+                    class="badge badge-danger"
+                  >
+                    {{ $t('request delete') | uppercase }}
+                  </div>
+                  <div
+                    v-if="stockCorrection.form.requestCancellationAt != null && stockCorrection.form.cancellationStatus == 1"
+                    class="badge badge-success"
+                  >
+                    {{ $t('delete approved') | uppercase }}
+                  </div>
+                  <div
+                    v-if="stockCorrection.form.requestCancellationAt != null && stockCorrection.form.cancellationStatus == -1"
+                    class="badge badge-danger"
+                  >
+                    {{ $t('delete rejected') | uppercase }}
                   </div>
                 </td>
               </tr>
@@ -313,7 +334,6 @@ export default {
       const formApprovalStatus = this.formApprovalStatus.value || null
       this.get({
         params: {
-          filter_form: formStatus + ';' + formApprovalStatus,
           filter_like: {
             'form.number': this.searchText,
             'form.notes': this.searchText,
