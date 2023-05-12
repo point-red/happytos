@@ -330,8 +330,8 @@ export default {
     }),
     getStockCorrections () {
       this.isLoading = true
-      const formStatus = this.formStatus.value ? this.formStatus.value.split(';')[1] || null : null
-      const formApprovalStatus = this.formApprovalStatus.value || null
+      // const formStatus = this.formStatus.value ? this.formStatus.value.split(';')[1] || null : null
+      // const formApprovalStatus = this.formApprovalStatus.value || null
       this.get({
         params: {
           filter_like: {
